@@ -953,8 +953,11 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
         [self markAttributesAsSyncedIfNeeded:subscriberAttributes appUserID:self.appUserID error:error];
 
         RCPurchaseCompletedBlock completion = nil;
+        NSString *productIdentifier = transaction.payment.productIdentifier;
         @synchronized (self) {
-            completion = self.purchaseCompleteCallbacks[transaction.payment.productIdentifier];
+            if (productIdentifier) {
+                completion = self.purchaseCompleteCallbacks[productIdentifier];
+            }
         }
 
         if (info) {
@@ -980,7 +983,9 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
         }
         
         @synchronized (self) {
-            self.purchaseCompleteCallbacks[transaction.payment.productIdentifier] = nil;
+            if (productIdentifier) {
+                self.purchaseCompleteCallbacks[productIdentifier] = nil;
+            }
         }
     }];
 }
@@ -1100,10 +1105,23 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
 }
 
 - (void)fetchProductsAndPostReceiptWithTransaction:(SKPaymentTransaction *)transaction data:(NSData *)data {
-    [self productsWithIdentifiers:@[transaction.payment.productIdentifier]
-                  completionBlock:^(NSArray<SKProduct *> *products) {
-                      [self postReceiptWithTransaction:transaction data:data products:products];
-                  }];
+    if (transaction.payment.productIdentifier) {
+        [self productsWithIdentifiers:@[transaction.payment.productIdentifier]
+                      completionBlock:^(NSArray<SKProduct *> *products) {
+            [self postReceiptWithTransaction:transaction data:data products:products];
+        }];
+    } else {
+        if (transaction.payment == nil) {
+            RCLog(@"There is a problem with the payment. This is possibly an App Store quirk.");
+        } else if (transaction.payment.productIdentifier == nil) {
+            RCLog(@"There is a problem with the payment. Couldn't find its product identifier. This is possibly an App Store quirk.");
+        }
+        
+        [self handleReceiptPostWithTransaction:transaction
+                                 purchaserInfo:nil
+                          subscriberAttributes:nil
+                                         error:RCPurchasesErrorUtils.unknownError];
+    }
 }
 
 - (void)postReceiptWithTransaction:(SKPaymentTransaction *)transaction

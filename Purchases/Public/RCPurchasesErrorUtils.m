@@ -300,6 +300,10 @@ static RCPurchasesErrorCode RCPurchasesErrorCodeFromSKError(NSError *skError) {
     return [self errorWithCode:RCInvalidAppUserIdError];
 }
 
++ (NSError *)unknownError {
+    return [self errorWithCode:RCUnknownError];
+}
+
 + (NSError *)purchasesErrorWithSKError:(NSError *)skError {
 
     RCPurchasesErrorCode errorCode = RCPurchasesErrorCodeFromSKError(skError);
