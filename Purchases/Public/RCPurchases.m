@@ -953,7 +953,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
         [self markAttributesAsSyncedIfNeeded:subscriberAttributes appUserID:self.appUserID error:error];
 
         RCPurchaseCompletedBlock completion = nil;
-        NSString *productIdentifier = transaction.payment.productIdentifier;
+        _Nullable NSString *productIdentifier = [self getProductIdentifierFrom:transaction];
         @synchronized (self) {
             if (productIdentifier) {
                 completion = self.purchaseCompleteCallbacks[productIdentifier];
@@ -1025,7 +1025,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
         case SKPaymentTransactionStateFailed: {
             RCPurchaseCompletedBlock completion = nil;
             @synchronized (self) {
-                completion = self.purchaseCompleteCallbacks[transaction.payment.productIdentifier];
+                completion = self.purchaseCompleteCallbacks[[self getProductIdentifierFrom:transaction]];
             }
 
             CALL_IF_SET_ON_MAIN_THREAD(
@@ -1040,7 +1040,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
             }
             
             @synchronized (self) {
-                self.purchaseCompleteCallbacks[transaction.payment.productIdentifier] = nil;
+                self.purchaseCompleteCallbacks[[self getProductIdentifierFrom:transaction]] = nil;
             }
             break;
         }
@@ -1105,18 +1105,12 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
 }
 
 - (void)fetchProductsAndPostReceiptWithTransaction:(SKPaymentTransaction *)transaction data:(NSData *)data {
-    if (transaction.payment.productIdentifier) {
-        [self productsWithIdentifiers:@[transaction.payment.productIdentifier]
+    if ([self getProductIdentifierFrom:transaction]) {
+        [self productsWithIdentifiers:@[[self getProductIdentifierFrom:transaction]]
                       completionBlock:^(NSArray<SKProduct *> *products) {
             [self postReceiptWithTransaction:transaction data:data products:products];
         }];
     } else {
-        if (transaction.payment == nil) {
-            RCLog(@"There is a problem with the payment. This is possibly an App Store quirk.");
-        } else if (transaction.payment.productIdentifier == nil) {
-            RCLog(@"There is a problem with the payment. Couldn't find its product identifier. This is possibly an App Store quirk.");
-        }
-        
         [self handleReceiptPostWithTransaction:transaction
                                  purchaserInfo:nil
                           subscriberAttributes:nil
@@ -1154,6 +1148,16 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
                                              subscriberAttributes:subscriberAttributes
                                                             error:error];
                        }];
+}
+
+- (_Nullable NSString *)getProductIdentifierFrom:(SKPaymentTransaction *)transaction
+{
+    if (transaction.payment == nil) {
+        RCLog(@"There is a problem with the payment. Couldn't find the payment. This is possibly an App Store quirk.");
+    } else if (transaction.payment.productIdentifier == nil) {
+        RCLog(@"There is a problem with the payment. Couldn't find its product identifier. This is possibly an App Store quirk.");
+    }
+    return transaction.payment.productIdentifier;
 }
 
 @end
