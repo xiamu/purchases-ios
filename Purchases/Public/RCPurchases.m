@@ -1069,7 +1069,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
 - (nullable RCPurchaseCompletedBlock)getAndRemovePurchaseCompletedBlockFor:(SKPaymentTransaction *)transaction
 {
     RCPurchaseCompletedBlock completion = nil;
-    if (transaction.payment.productIdentifier) {
+    if ([self getProductIdentifierFrom:transaction]) {
         @synchronized (self) {
             completion = self.purchaseCompleteCallbacks[transaction.payment.productIdentifier];
             self.purchaseCompleteCallbacks[transaction.payment.productIdentifier] = nil;
