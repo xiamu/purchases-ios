@@ -966,7 +966,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
         [self markAttributesAsSyncedIfNeeded:subscriberAttributes appUserID:self.appUserID error:error];
 
         RCPurchaseCompletedBlock completion = nil;
-        _Nullable NSString *productIdentifier = [self getProductIdentifierFrom:transaction];
+        _Nullable NSString *productIdentifier = [self productIdentifierFrom:transaction];
         @synchronized (self) {
             if (productIdentifier) {
                 completion = self.purchaseCompleteCallbacks[productIdentifier];
@@ -1069,7 +1069,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
 - (nullable RCPurchaseCompletedBlock)getAndRemovePurchaseCompletedBlockFor:(SKPaymentTransaction *)transaction
 {
     RCPurchaseCompletedBlock completion = nil;
-    if ([self getProductIdentifierFrom:transaction]) {
+    if ([self productIdentifierFrom:transaction]) {
         @synchronized (self) {
             completion = self.purchaseCompleteCallbacks[transaction.payment.productIdentifier];
             self.purchaseCompleteCallbacks[transaction.payment.productIdentifier] = nil;
@@ -1133,8 +1133,8 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
 }
 
 - (void)fetchProductsAndPostReceiptWithTransaction:(SKPaymentTransaction *)transaction data:(NSData *)data {
-    if ([self getProductIdentifierFrom:transaction]) {
-        [self productsWithIdentifiers:@[[self getProductIdentifierFrom:transaction]]
+    if ([self productIdentifierFrom:transaction]) {
+        [self productsWithIdentifiers:@[[self productIdentifierFrom:transaction]]
                       completionBlock:^(NSArray<SKProduct *> *products) {
             [self postReceiptWithTransaction:transaction data:data products:products];
         }];
@@ -1178,7 +1178,7 @@ static BOOL _automaticAppleSearchAdsAttributionCollection = NO;
                        }];
 }
 
-- (_Nullable NSString *)getProductIdentifierFrom:(SKPaymentTransaction *)transaction
+- (_Nullable NSString *)productIdentifierFrom:(SKPaymentTransaction *)transaction
 {
     if (transaction.payment == nil) {
         RCLog(@"There is a problem with the payment. Couldn't find the payment. This is possibly an App Store quirk.");
