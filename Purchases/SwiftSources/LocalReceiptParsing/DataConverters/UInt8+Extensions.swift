@@ -10,14 +10,13 @@ import Foundation
 
 extension UInt8 {
     func bitAtIndex(_ index: UInt8) -> UInt8 {
-        guard 0 <= index && index <= 7 else { fatalError("invalid index: \(index)") }
+        guard index <= 7 else { fatalError("invalid index: \(index)") }
         let shifted = self >> (7 - index)
         return shifted & 0b1
     }
 
     func valueInRange(from: UInt8, to: UInt8) -> UInt8 {
-        guard 0 <= from && from <= 7 else { fatalError("invalid index: \(from)") }
-        guard 0 <= to && to <= 7 else { fatalError("invalid index: \(to)") }
+        guard to <= 7 else { fatalError("invalid index: \(to)") }
         guard from <= to else { fatalError("from: \(from) can't be greater than to: \(to)") }
 
         let range: UInt8 = to - from + 1
