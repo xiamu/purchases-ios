@@ -9,7 +9,7 @@ enum ASN1Class: UInt8 {
     case universal, application, contextSpecific, `private`
 }
 
-enum ASN1Identifier: UInt8 {
+enum ASN1Identifier: UInt8, CaseIterable {
     case endOfContent = 0x00
     case boolean = 1
     case integer = 2

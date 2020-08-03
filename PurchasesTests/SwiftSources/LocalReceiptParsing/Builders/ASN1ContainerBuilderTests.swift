@@ -6,6 +6,7 @@ import Nimble
 class ASN1ContainerBuilderTests: XCTestCase {
     var containerBuilder: ASN1ContainerBuilder!
     let mockContainerPayload: [UInt8] = [0b01, 0b01, 0b01]
+    let mockConstructedContainerPayload: [UInt8] = [0b11, 0b11, 0b01, 0b01, 0b01, 0b01, 0b01, 0b01, 0b01]
 
     override func setUp() {
         super.setUp()
@@ -36,6 +37,31 @@ class ASN1ContainerBuilderTests: XCTestCase {
         payloadArray.insert(privateClassByte, at: 0)
         payload = ArraySlice(payloadArray)
         try! expect(self.containerBuilder.build(fromPayload: payload).containerClass) == .private
+    }
+    
+    func testBuildFromContainerExtractsEncodingTypeCorrectly() {
+        let primitiveEncodingByte: UInt8 = 0b00000000
+        var payloadArray = mockContainerPayload
+        payloadArray.insert(primitiveEncodingByte, at: 0)
+        var payload = ArraySlice(payloadArray)
+        try! expect(self.containerBuilder.build(fromPayload: payload).encodingType) == .primitive
+        
+        let constructedEncodingByte: UInt8 = 0b00100000
+        payloadArray = mockConstructedContainerPayload
+        payloadArray.insert(constructedEncodingByte, at: 0)
+        payload = ArraySlice(payloadArray)
+        try! expect(self.containerBuilder.build(fromPayload: payload).encodingType) == .constructed
+    }
+    
+    func testBuildFromContainerExtractsIdentifierCorrectly() {
+        for expectedIdentifier in ASN1Identifier.allCases {
+            let identifierByte = UInt8(expectedIdentifier.rawValue)
+            
+            var payloadArray = mockContainerPayload
+            payloadArray.insert(identifierByte, at: 0)
+            let payload = ArraySlice(payloadArray)
+            try! expect(self.containerBuilder.build(fromPayload: payload).containerIdentifier) == expectedIdentifier
+        }
     }
 
     func testBuildFromContainerThatIsTooSmallThrows() {
