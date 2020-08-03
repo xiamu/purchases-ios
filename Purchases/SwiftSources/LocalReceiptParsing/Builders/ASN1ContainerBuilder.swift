@@ -12,7 +12,7 @@ struct ASN1ContainerBuilder {
               let firstByte = payload.first else { throw ReceiptReadingError.asn1ParsingError }
         let containerClass = try extractClass(byte: firstByte)
         let encodingType = try extractEncodingType(byte: firstByte)
-        let containerType = try extractType(byte: firstByte)
+        let containerIdentifier = try extractIdentifier(byte: firstByte)
         let length = try extractLength(data: payload.dropFirst())
         let identifierTotalBytes = 1
         let metadataBytes = identifierTotalBytes + length.totalBytes
@@ -30,7 +30,7 @@ struct ASN1ContainerBuilder {
             }
         }
         return ASN1Container(containerClass: containerClass,
-                             containerType: containerType,
+                             containerIdentifier: containerIdentifier,
                              encodingType: encodingType,
                              length: length,
                              internalPayload: internalPayload,
@@ -54,10 +54,10 @@ private extension ASN1ContainerBuilder {
         return encodingType
     }
 
-    func extractType(byte: UInt8) throws -> ASN1Type {
+    func extractIdentifier(byte: UInt8) throws -> ASN1Identifier {
         let lastFiveBits = byte.valueInRange(from: 3, to: 7)
-        guard let asn1Type = ASN1Type(rawValue: lastFiveBits) else { throw ReceiptReadingError.asn1ParsingError }
-        return asn1Type
+        guard let asn1Identifier = ASN1Identifier(rawValue: lastFiveBits) else { throw ReceiptReadingError.asn1ParsingError }
+        return asn1Identifier
     }
 
     func extractLength(data: ArraySlice<UInt8>) throws -> ASN1Length {

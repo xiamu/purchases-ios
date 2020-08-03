@@ -9,7 +9,7 @@ enum ASN1Class: UInt8 {
     case universal, application, contextSpecific, `private`
 }
 
-enum ASN1Type: UInt8 {
+enum ASN1Identifier: UInt8 {
     case endOfContent = 0x00
     case boolean = 1
     case integer = 2
@@ -52,7 +52,7 @@ struct ASN1Length {
 
 struct ASN1Container {
     let containerClass: ASN1Class
-    let containerType: ASN1Type
+    let containerIdentifier: ASN1Identifier
     let encodingType: ASN1EncodingType
     let length: ASN1Length
     let internalPayload: ArraySlice<UInt8>

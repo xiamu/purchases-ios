@@ -38,7 +38,7 @@ private extension ReceiptParser {
             var currentPayload = container.internalPayload
             for internalContainer in container.internalContainers {
                 currentPayload = currentPayload.dropFirst(internalContainer.totalBytes)
-                if internalContainer.containerType == .objectIdentifier {
+                if internalContainer.containerIdentifier == .objectIdentifier {
                     let objectIdentifier = objectIdentifierParser.build(fromPayload: internalContainer.internalPayload)
                     if objectIdentifier == objectId {
                         return try containerBuilder.build(fromPayload: currentPayload)
